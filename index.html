@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<title>Rune calculator</title>
+<meta charset="utf-8">
+<meta name=viewport content='width=device-width,initial-scale=1,maximum-scale=1'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Monda:wght@700&family=Shippori+Antique&family=Sofia+Sans+Condensed:wght@600;800&display=swap" rel="stylesheet">
+<script src="/common.js"></script>
+<link rel="stylesheet" href="/common.css">
+<style>
+    figure {
+        position:relative;
+        display:inline-flex;
+        margin-top:1em;
+    }
+    figcaption {
+        position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        font-size:1.5em;
+    }
+    figure:not(.unacquired) figcaption {display:none;}
+    figure img {width:6em;}
+    figure.unacquired img,figure.unacquired~* {
+        filter:brightness(.6);
+        pointer-events:none;
+    }
+    img {filter:drop-shadow(0 0 0.5em #00000088);}
+    
+    ul {
+        padding:.5em;
+    }
+    data::before {content:attr(title);}
+    data::after {content:attr(value);}
+    data {
+        display:inline-flex; justify-content:space-between;
+        width:4.5em;
+        margin-right:.75em; padding-right:.5em;
+        color:var(--color);
+        border-right:.1em solid silver;
+    }
+    prop-icon {vertical-align:middle;}
+    ul label {
+        display:inline-block;
+        width:7.5em;
+        position:relative;
+        margin:.1em 1em;
+    }
+    ul label::before,ul label::after {
+        position:absolute; top:50%; transform:translateY(-50%);
+        font-size:.8em;
+    }
+    ul label::before {content:attr(data-min); right:100%;}
+    ul label::after {content:attr(data-max); left:100%;}
+    input[type=range] {
+        appearance:none;
+        height:.5em;
+        background:linear-gradient(to right,    
+            gray calc(var(--standard,0)*100% - 1%),
+            white calc(var(--standard,0)*100% - 1%) calc(var(--standard,0)*100% + 1%),
+            gray calc(var(--standard,0)*100% + 1%));
+        border-radius:9em;
+        position:relative;
+        font-size:1em;
+    }
+    ::-webkit-slider-runnable-track {
+        max-width:calc(var(--realized,0)*100%);
+        transition:max-width .5s;
+        height:100%;
+        background:silver;
+        border-radius:9em;
+    }
+    ::-webkit-slider-thumb {
+        appearance:none;
+        position:absolute; left:calc(var(--value,0)*100%); bottom:100%; transform:translateX(-50%);
+        transition:left .5s;
+        border-style:solid;
+        border-width:1em .5em 0 .5em; border-color:var(--color,silver) transparent transparent transparent;
+        font-size:.5em;
+    }
+
+    li.checked {--color:chartreuse;}
+    li.checked prop-icon::before,li.checked prop-icon::after {
+        position:absolute; right:100%;
+    }
+    li.checked prop-icon::before {
+        content:'▶️';
+        animation:highlight 2s forwards;
+    }
+    @keyframes highlight {to {opacity:0;}}
+    ul li:not(.checked) {color:silver;}
+    :is(.prop,.value) li.checked prop-icon::after {
+        content:'⬜';
+        animation:none;
+    }
+
+    menu {
+        display:flex; gap:1em; flex-wrap:wrap; justify-content: space-between;
+        max-width:20em;
+        margin:auto; padding:.5em;
+    }
+    menu :is(button,label) {
+        border:.15em solid; border-radius:.5em;
+        text-align:left;
+        display:inline-flex; align-items:center; 
+        position:relative;
+        padding-right:.5em;
+        background:steelblue;
+    }
+    menu span {
+        width:3.5em;
+    }
+    ul.prop+menu li:has(img[src='value-random.webp']),
+    ul.value+menu li:has(img[src='single-random.webp']),
+    menu .disabled {
+        pointer-events:none;
+        filter:saturate(0) brightness(.7);
+    }
+    input:not(:checked)+label {
+        filter:saturate(0) brightness(.7);
+    }
+    menu img {
+        width:4em;
+        margin-right:.2em;
+    }
+    :is(button,label)::after {
+        position:absolute; right:.2em; top:0;
+    }
+    .disabled button::after {content:'⨯';}
+    :is(button,label)[title]::after {content:'-'attr(title);}
+    menu li:last-child label::before {
+        content:'➕';
+        position:absolute; right:105%;
+        background:var(--fg); border-radius:9em;
+        width:1.5em; height:1.5em;
+        line-height:1.6em; text-align:center;
+    }
+</style>
+<main>
+    <figure class="unacquired"><img src="weapon.png"><figcaption><span>Acquire</span></figure>
+    <ul></ul>
+    <menu>
+        <li class="disabled"><button><img src="all-select.png"><span>All select</span></button>
+        <li class="disabled"><button><img src="single-select.webp"><span>Single select</span></button>
+        <li><button onclick="Properties.total()"><img src="all-random.webp"><span>All random</span></button>
+        <li><button onclick="Properties.select()"><img src="single-random.webp"><span>Single random</span></button>
+        <li><button onclick="Properties.value()"><img src="value-random.webp"><span>Stat change</span></button>
+        <li><input type="checkbox" id="protect"><label for="protect"><img src="drop-protect.webp"><span>Drop protect</span></label>
+    </menu>
+</main>
+
+<script>
+    Q('figure').addEventListener('click', ev => {
+        Q('figure').classList = '';
+        Properties.total(true);
+    }, {once: true});
+    Q('ul').append(...Object.entries({
+        A: [280,560,458], D: [160,330,259], V: [160,330,259],
+        HP: [9,20,14.5], MP: [4,8,6.41], GP:[.19,.5,.31],
+        SA: [470,1000,778], SD:[290,600,470],
+        CAC: [1.8,3.6,2.98], CAD: [16,32,26.55],
+        TR: [.1,3], BAD: [.1,5], EXP: [.1,1],
+        HSC: [.1,4], HS:[100,3000]
+    }).map(([prop, [min, max, standard]]) => E('li', [
+        E('prop-icon', {prop}),
+        E('data', {title: prop}), 
+        E('label', [E('input', {
+            type: 'range', min, max, name: prop,
+            step: ['A','D','V','SA','SD','HS'].includes(prop) ? 1 : .01, 
+            title: standard, disabled: true,
+        })])
+    ])));
+
+    Q('input[type=range]', input => {
+        ['min','max'].forEach(a => input.parentElement.setAttribute(`data-${a}`, input[a]));
+        input.value = input.min;
+        input.pointer = value => (value - parseFloat(input.min)) / (parseFloat(input.max) - parseFloat(input.min));
+        input.title && input.style.setProperty('--standard', input.pointer(parseFloat(input.title)));
+    });
+
+    Q('ul li', li => li.onclick = () => Q('ul.prop') ? Properties.single(li) : Q('ul.value') ? Properties.randomize(li) : null);
+    
+    const Properties = {
+        consume: button => button.title = parseInt(button.title || 0) + 1,
+        select: () => Q('ul').classList.toggle('prop'),
+        value: () => Q('ul').classList.toggle('value'),
+        total: (first = false) => {
+            Q('#protect').checked = false;
+            Properties.uncheck().draw(5).consume(first ? '' : Q('button:has(img[src="all-random.webp"])'));
+        },
+        single: li => {
+            Q('#protect').checked = false;
+            Properties.uncheck(li)?.draw().consume(Q('button:has(img[src="single-random.webp"])'));
+            Q('ul').classList.remove('prop');
+        },
+        reset: li => {
+            let input = li.Q('input');
+            input.value = input.min;
+            Q(`data[title=${input.name}]`).value = '';
+            input.style.setProperty('--value', 0);
+            input.style.setProperty('--realized', 0);
+        },
+        draw: (n = 1) => {
+            for (let i = 1; i <= n; i++) {
+                let set = document.querySelectorAll('ul li:not(.checked)');
+                Properties.check(set[Math.floor(Math.random() * set.length)]);
+            }
+            return Properties;
+        },
+        check: li => {
+            li.classList.add('checked');
+            Properties.randomize(li);
+        },
+        uncheck: li => {
+            if (li && (!Q('ul.value,ul.prop') || !li.matches('.checked'))) return;
+            [li ?? [...document.querySelectorAll('ul li.checked')]].flat(9).forEach(li => {
+                li.classList.remove('checked');
+                Properties.reset(li);
+            });
+            return Properties;
+        },
+        randomize: li => {
+            let input = li.Q('input');
+            let before = parseFloat(input.value);
+            let after = Math.random() * (parseFloat(input.max) - parseFloat(input.min)) + parseFloat(input.min);
+            after = after.toFixed(input.step == 1 ? 0 : 2);
+            input.style.setProperty('--realized', input.pointer(after));
+
+            if (!Q('#protect').checked || Q('#protect').checked && after > before) {
+                input.value = Q(`data[title=${input.name}]`).value = after;
+                input.style.setProperty('--value', input.pointer(after));
+            }
+            if (Q('ul.value')) {
+                Q('ul').classList.remove('value');
+                Properties.consume(Q('button:has(img[src="value-random.webp"])'));
+                Q('#protect').checked && Properties.consume(Q('label[for=protect]'));
+            }
+        }
+    }
+</script>
