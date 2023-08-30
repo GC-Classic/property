@@ -81,6 +81,7 @@
     }
 
     li.checked {--color:chartreuse;}
+    ul li:not(.checked) {color:silver;}
     li.checked prop-icon::before,li.checked prop-icon::after {
         position:absolute; right:100%;
     }
@@ -89,11 +90,11 @@
         animation:highlight 2s forwards;
     }
     @keyframes highlight {to {opacity:0;}}
-    ul li:not(.checked) {color:silver;}
     :is(.prop,.value) li.checked prop-icon::after {
         content:'⬜';
         animation:none;
     }
+    :is(.prop,.value) li:not(.checked) {pointer-events:none;}
 
     menu {
         display:flex; gap:1em; flex-wrap:wrap; justify-content: space-between;
