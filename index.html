@@ -63,6 +63,7 @@
         border-radius:9em;
         position:relative;
         font-size:1em;
+        pointer-events:none;
     }
     ::-webkit-slider-runnable-track {
         max-width:calc(var(--realized,0)*100%);
@@ -177,7 +178,7 @@
         E('label', [E('input', {
             type: 'range', min, max, name: prop,
             step: ['A','D','V','SA','SD','HS'].includes(prop) ? 1 : .01, 
-            title: standard, disabled: true,
+            title: standard,
         })])
     ])));
 
@@ -222,7 +223,6 @@
             Properties.randomize(li);
         },
         uncheck: li => {
-            if (li && (!Q('ul.value,ul.prop') || !li.matches('.checked'))) return;
             [li ?? [...document.querySelectorAll('ul li.checked')]].flat(9).forEach(li => {
                 li.classList.remove('checked');
                 Properties.reset(li);
@@ -230,7 +230,6 @@
             return Properties;
         },
         randomize: li => {
-            if (!li.matches('.checked')) return;
             let input = li.Q('input');
             let before = parseFloat(input.value);
             let after = Math.random() * (parseFloat(input.max) - parseFloat(input.min)) + parseFloat(input.min);
