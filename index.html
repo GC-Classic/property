@@ -229,6 +229,7 @@
             return Properties;
         },
         randomize: li => {
+            if (!li.matches('.checked')) return;
             let input = li.Q('input');
             let before = parseFloat(input.value);
             let after = Math.random() * (parseFloat(input.max) - parseFloat(input.min)) + parseFloat(input.min);
