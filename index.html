@@ -155,7 +155,9 @@
     <a href="/property"><span>Property</span><span>屬性</span></a>
     <cite>By V. Man (@beybladeburst)</cite>
 </footer>
-
+<script>
+    onhashchange(location.hash.substring(1) || 'en');
+</script>
 <script>
     Q('figure').addEventListener('click', ev => {
         Q('figure').classList = '';
