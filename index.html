@@ -199,7 +199,7 @@
         },
         single: li => {
             Q('#protect').checked = false;
-            Properties.uncheck(li)?.draw().consume(Q('button:has(img[src="single-random.webp"])'));
+            Properties.draw().uncheck(li).consume(Q('button:has(img[src="single-random.webp"])'));
             Q('ul').classList.remove('prop');
         },
         reset: li => {
