@@ -37,9 +37,8 @@ ul {
     &:is(.prop,.value) li:not(.checked) {pointer-events:none;}
 
     prop-icon {vertical-align:-.15em;}
-    data::after {content:attr(value);}
-    data {
-        width:3em;
+    output {
+        display:inline-block; width:3em;
         color:var(--color);
         text-align:center;
     }
@@ -106,13 +105,13 @@ menu {
         &[title]::after {content:'-'attr(title);}
     }
     span {width:3.5em;}
-    ul.prop+& li:has(img[src='value-random.webp']),
-    ul.value+& li:has(img[src='single-random.webp']),
+    ul.prop+& li:has(#value),
+    ul.value+& li:has(#prop),
     .disabled {
         pointer-events:none;
         filter:saturate(0) brightness(.7);
     }
-    input:not(:checked)+label {
+    label:has(input:not(:checked)) {
         filter:saturate(0) brightness(.7);
     }
     img {
