@@ -75,7 +75,7 @@
             after = after.toFixed(step == 1 ? 0 : 2);
             E(this.input).set({'--realized': this.position(after)});
 
-            (!protect || protect && after > before) && (this.value = after);
+            (!protect || protect && parseFloat(after) > parseFloat(before)) && (this.value = after);
             protect != null && Property.consume('#value', protect ? '#protect' : null);
         }
 
