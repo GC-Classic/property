@@ -40,18 +40,19 @@
 
     class Property {
         constructor([prop, [min, max, standard]]) {
-            this.li = E('li', {
-                id: prop,
+            this.li = E(`li#${prop}`, {
                 onclick: () => Q('ul.prop') ? Property.single(this) : Q('ul.value') ? this.randomize(Property.protect.checked) : null
             }, [
                 E('prop-icon', {prop}),
                 E('output'), 
-                E('label', {dataset: {min, max}}, [this.input = E('input', {
+                E.input({
+                    label: {dataset: {min, max}},
                     type: 'range', min, max, name: prop,
                     step: ['A','D','V','SA','SD','HS'].includes(prop) ? 1 : .01, 
                     value: min
-                })])
+                })
             ]);
+            this.input = this.li.Q('input');
             this.position = value => (value - min) / (max - min);
             standard && E(this.input).set({'--standard': this.position(standard)});
             Property[prop] = this;
