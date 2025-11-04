@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<title>Property simulator</title>
+<meta charset="utf-8">
+<meta name=viewport content='width=device-width,initial-scale=1,maximum-scale=1'>
+<link rel="stylesheet" href="/common.css">
+<link rel="stylesheet" href="style.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Monda:wght@700&family=Shippori+Antique&family=Sofia+Sans+Condensed:wght@600;800&display=swap" rel="stylesheet">
+
+<main>
+    <figure class="unacquired"><img src="weapon.png"><figcaption><span>Acquire</span></figure>
+    <ul></ul>
+    <menu>
+        <li><button><gc-item id="101727"></gc-item><span>All select</span></button>
+        <li><button><img src="single-select.webp"><span>Single select</span></button>
+        <li><button id="total"><gc-item id="101726"></gc-item><span>All random</span></button>
+        <li><button id="prop"><gc-item id="143342"></gc-item><span>Single random</span></button>
+        <li><button id="value"><img src="value-random.webp"><span>Stat change</span></button>
+        <li><label id="protect"><input type="checkbox"><img src="drop-protect.webp"><span>Drop protect</span></label>
+    </menu>
+</main>
+<footer>
+    <a href="/analyzer/">Analyzer</a>・
+    <a href="/seal/">Seal breaker</a>
+    <cite>By V. Man (@AEOQ) GuRan GCC 2021</cite>
+</footer>
+
+<script type="module">
+    import {A,E,O,Q} from 'https://aeoq.github.io/AEOQ.mjs'
+    import {} from '/UIX.js'
+
+    window.onhashchange(location.hash.substring(1) || 'en');
+
+    Q('figure').addEventListener('click', ev => {
+        ev.target.closest('figure').classList = '';
+        Property.total(true);
+    }, {once: true});
+
+    Q('button', button => button.onclick = () => button.id == 'total' ? Property.total() : Property.select(button.id));
+
+    class Property {
+        constructor([prop, [min, max, standard]]) {
+            this.li = E(`li#${prop}`, {
+                onclick: () => Q('ul.prop') ? Property.single(this) : Q('ul.value') ? this.randomize(Property.protect.checked) : null
+            }, [
+                E('prop-icon', {prop}),
+                E('output'), 
+                E.input({
+                    label: {dataset: {min, max}},
+                    type: 'range', min, max, name: prop,
+                    step: ['A','D','V','SA','SD','HS'].includes(prop) ? 1 : .01, 
+                    value: min
+                })
+            ]);
+            this.input = this.li.Q('input');
+            this.position = value => (value - min) / (max - min);
+            standard && E(this.input).set({'--standard': this.position(standard)});
+            Property[prop] = this;
+        }
+        set checked (flag) {
+            this.li.classList[flag ? 'add' : 'remove']('checked');
+            flag ? this.randomize() : this.value = null;
+        }
+        set value (value) {
+            if (value === null) {
+                this.li.Q(`output`).value = '';
+                E(this.input).set({'--value': 0, '--realized': 0, value: this.input.min});
+            } else {
+                this.input.value = this.li.Q(`output`).value = value;
+                E(this.input).set({'--value': this.position(value)});
+            }
+        }
+        randomize (protect) {
+            let {value: before, min, max, step} = this.input;
+            let after = Math.random() * (parseFloat(max) - parseFloat(min)) + parseFloat(min);
+            after = after.toFixed(step == 1 ? 0 : 2);
+            E(this.input).set({'--realized': this.position(after)});
+
+            (!protect || protect && parseFloat(after) > parseFloat(before)) && (this.value = after);
+            protect != null && Property.consume('#value', protect ? '#protect' : null);
+        }
+
+        static protect = Q('#protect input')
+        static select = mode => Q('ul').classList.toggle(mode)
+
+        static total = (init = false) => Property.uncheck().draw(5).consume(init ? '' : '#total')
+        static single = (prop) => Property.draw().uncheck(prop).consume('#prop')
+
+        static consume (...scrolls) {
+            scrolls.forEach(scroll => scroll && (Q(scroll).title = parseInt(Q(scroll).title || 0) + 1));
+            Q('ul').classList.remove('prop', 'value');
+        }
+        static uncheck (prop) {
+            prop ? prop.checked = false : (Q('li.checked') ?? []).forEach(li => li && (Property[li.id].checked = false));
+            return Property;
+        }
+        static draw (n = 1) {
+            Property.protect.checked = false;
+            for (let i = 1; i <= n; i++) {
+                let available = Q('ul li:not(.checked)');
+                let drawn = available[Math.floor(Math.random() * available.length)];
+                Property[drawn.id].checked = true;
+            }
+            return Property;
+        }
+    }
+    Q('ul').append(...new O({
+        A: [280,560,458], D: [160,330,259], V: [160,330,259],
+        HP: [9,20,14.5], MP: [4,8,6.41], GP:[.19,.5,.31],
+        SA: [470,1000,778], SD:[290,600,470],
+        CAC: [1.8,3.6,2.98], CAD: [16,32,26.55],
+        TR: [.1,3], BAD: [.1,5], EXP: [.1,1],
+        HSC: [.1,4], HS:[100,3000]
+    }).flatMap(([prop, values]) => new Property([prop, values]).li));
+</script>
